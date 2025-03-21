@@ -13,11 +13,10 @@ router.post('/register', async (req, res) => {
     res.status(400).json({ message: 'Registration faiiiled', error: err.message });
   }
 });
-const jwt = require('jsonwebtoken');
 
 router.post('/login', async (req, res) => {
   const { username, userpassword } = req.body;
-  console.log(username, userpassword); // Debugging line
+  //console.log(username, userpassword); // Debugging line
   try {
     const user = await User.findByUsername(username);
     if (!user || !(await User.comparePasswords(userpassword, user.userpassword))) {
