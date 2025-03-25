@@ -29,17 +29,26 @@ class Event {
 
 
   
-  static async update(eventId, { name, date,eventDetails, location, eventStatus  }) {
-    const query = `
-      UPDATE events
-      SET name = $1, eventDetails = $2,data =$3, location = $4, eventStatus = $5,
-      WHERE eventId = $6
-      RETURNING *;
-    `;
-    const values = [name,eventDetails, date, location, eventStatus, eventId];
-    const { rows } = await pool.query(query, values);
-    return rows[0];
+static async update(eventId, { name, date, eventdetails, location, eventstatus }) {
+  // Check if the event exists first
+  const checkQuery = 'SELECT * FROM events WHERE eventId = $1';
+  const { rows: eventRows } = await pool.query(checkQuery, [eventId]);
+
+  if (eventRows.length === 0) {
+    throw new Error('Event not found');
   }
+
+  // Event exists, proceed with the update
+  const query = `
+    UPDATE events
+    SET name = $1, eventDetails = $2, date = $3, location = $4, eventStatus = $5
+    WHERE eventId = $6
+    RETURNING *;
+  `;
+  const values = [name, eventdetails, date, location, eventstatus, eventId];
+  const { rows } = await pool.query(query, values);
+  return rows[0];
+}
 
   static async delete(eventId) {
     const query = 'DELETE FROM events WHERE eventId = $1 RETURNING *';
@@ -51,6 +60,17 @@ class Event {
     const query = 'SELECT * FROM events';
     const { rows } = await pool.query(query);
     return rows;
+  }
+
+  static async getById(eventId) {
+    const query = 'SELECT * FROM events WHERE eventId = $1';
+    const { rows } = await pool.query(query, [eventId]);
+    
+    if (rows.length === 0) {
+      throw new Error('Event not found');
+    }
+    
+    return rows[0];
   }
 }
 

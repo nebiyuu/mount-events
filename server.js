@@ -3,6 +3,7 @@ const app = express();
 app.use(express.json()); 
 require('dotenv').config();
 //console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('eventId:');
 
 const authRoutes = require('./routes/login');
 const eventRoutes = require('./routes/events');

@@ -3,7 +3,7 @@ const Event = require('../models/Event'); // Import the Event model
 const router = express.Router();
 
 // Route to create a new event
-router.post('/create-event', async (req, res) => {
+router.post('/create-events', async (req, res) => {
   try {
     const {name, eventDetails,date, location, eventStatus } = req.body;
 
@@ -43,5 +43,60 @@ router.get('/events', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+router.put('/update-events/:eventId', async (req, res) => {
+  const eventId = req.params.eventId;
+  const eventData = req.body;
+
+  try {
+    const updatedEvent = await Event.update(eventId, eventData);
+    res.status(200).json(updatedEvent);
+  } catch (err) {
+    if (err.message === 'Event not found') {
+      return res.status(404).json({ message: err.message });
+    }
+    res.status(500).json({ message: 'Update failed', error: err.message });
+  }
+});
+
+
+router.delete('/delete-events/:eventId', async (req, res) => {
+  const eventId = req.params.eventId;
+
+  try {
+    const deletedEvent = await Event.delete(eventId);
+    
+    if (!deletedEvent) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    
+    res.status(200).json({ 
+      message: 'Event deleted successfully',
+      deletedEvent 
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      message: 'Failed to delete event',
+      error: err.message 
+    });
+  }
+});
+
+
+router.get('/get-events/:eventId', async (req, res) => {
+  const eventId = req.params.eventId;
+
+  try {
+    const event = await Event.getById(eventId);
+    res.status(200).json(event);
+  } catch (err) {
+    if (err.message === 'Event not found') {
+      return res.status(404).json({ message: err.message });
+    }
+    res.status(500).json({ message: 'Failed to fetch event', error: err.message });
+  }
+});
+
 
 module.exports = router;
