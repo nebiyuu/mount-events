@@ -19,18 +19,25 @@ class User {
     return rows[0]; // This should contain 'id' or 'user_id'
   }
 
-
   static async findByUsername(username) {
-    const query = 'SELECT * FROM users WHERE username = $1';
-    const { rows } = await pool.query(query, [username]);
-    console.log(rows[0]);
-    return rows[0];
-
+    try {
+      const query = 'SELECT * FROM users WHERE username = $1';
+      const { rows } = await pool.query(query, [username]);
+      return rows[0] || null; // Return null if no user found
+    } catch (err) {
+      console.error('Database error in findByUsername:', err);
+      throw err;
+    }
   }
 
   static async comparePasswords(candidatePassword, hashedPassword) {
-    return await bcrypt.compare(candidatePassword, hashedPassword);
-  }
+    try {
+      return await bcrypt.compare(candidatePassword, hashedPassword);
+    } catch (err) {
+      console.error('Password comparison error:', err);
+      throw err;
+    }
+}
 }
 
 module.exports = User;

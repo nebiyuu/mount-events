@@ -3,13 +3,13 @@ const pool = require('../config/db');
 class Event {
 
     //creating a new event
-    static async create({ eventId, name, eventDetails, date, location, eventStatus }) {
+    static async create({ eventId, name, eventDetails, date, location, eventStatus,user_id: user_id }) {
         const query = `
-          INSERT INTO events (eventId, name, eventDetails, date, location, eventStatus)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          INSERT INTO events (eventId, name, eventDetails, date, location, eventStatus,user_id)
+          VALUES ($1, $2, $3, $4, $5, $6,$7)
           RETURNING *;
         `;
-        const values = [eventId, name, eventDetails, date, location, eventStatus];
+        const values = [eventId, name, eventDetails, date, location, eventStatus,user_id];
         console.log(eventId);
       
         try {

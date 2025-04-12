@@ -1,11 +1,14 @@
 const express = require('express');
 const Event = require('../models/Event'); // Import the Event model
+const authOrganizer = require('../middleware/authOrganizer');
+
 const router = express.Router();
 
+//router.use(authOrganizer);
 // Route to create a new event
 router.post('/create-events', async (req, res) => {
   try {
-    const {name, eventDetails,date, location, eventStatus } = req.body;
+    const {name, eventDetails,date, location, eventStatus ,user_id} = req.body;
 
     const eventId = `${name.substring(0, 3).toUpperCase()}_${location.substring(0, 3).toUpperCase()}_${Date.now().toString(36)}_${Math.floor(Math.random() * 1000).toString(36)}`;
     // Validate input (optional but recommended)
@@ -20,6 +23,7 @@ router.post('/create-events', async (req, res) => {
       date,
       location,
       eventStatus,
+      user_id
     });
     
     // Return the created event
@@ -45,20 +49,50 @@ router.get('/events', async (req, res) => {
 });
 
 
-router.put('/update-events/:eventId', async (req, res) => {
+// router.put('/update-events/:eventId', async (req, res) => {
+//   const eventId = req.params.eventId;
+//   const eventData = req.body;
+
+//   try {
+//     const updatedEvent = await Event.update(eventId, eventData);
+//     res.status(200).json(updatedEvent);
+//   } catch (err) {
+//     if (err.message === 'Event not found') {
+//       return res.status(404).json({ message: err.message });
+//     }
+//     res.status(500).json({ message: 'Update failed', error: err.message });
+//   }
+// });
+
+router.put('/update-events/:eventId', authOrganizer, async (req, res) => {
   const eventId = req.params.eventId;
   const eventData = req.body;
+  //console.log("1");
 
   try {
+    const event = await Event.getById(eventId); // Assume this fetches event data
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    // Check if the current organizer owns this event
+    if (event.user_id !== req.user_id) {
+      console.log("1" + event.user_id);
+      console.log("2" + req.user_id);
+
+
+
+      return res.status(403).json({ message: 'You can only update your own events' });
+    }
+
+    console.log("3" + eventId);
     const updatedEvent = await Event.update(eventId, eventData);
+    console.log("4" + eventId);
+
     res.status(200).json(updatedEvent);
   } catch (err) {
-    if (err.message === 'Event not found') {
-      return res.status(404).json({ message: err.message });
-    }
     res.status(500).json({ message: 'Update failed', error: err.message });
   }
 });
+
 
 
 router.delete('/delete-events/:eventId', async (req, res) => {

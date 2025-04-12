@@ -5,6 +5,8 @@ const Organizer = require('../models/Organizer');
 const jwt = require('jsonwebtoken');
 
 
+
+//to register organizer
 router.post('/register/organizer', async (req, res) => {
   const { username, userpassword, company_phone_number, company_logo, company_name, tin_number, bank_name, bank_account_number, business_license_path } = req.body;
   
@@ -45,21 +47,66 @@ router.post('/register/organizer', async (req, res) => {
 });
 
 
+//too register attendee
+router.post('/register/attendee',async(req,res)=>{
+  const { username, userpassword } = req.body; 
 
-router.post('/login', async (req, res) => {
-  const { username, userpassword } = req.body;
-  //console.log(username, userpassword); // Debugging line
   try {
-    const user = await User.findByUsername(username);
-    if (!user || !(await User.comparePasswords(userpassword, user.userpassword))) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    // Check if the username already exists
+    const existingUser = await User.findByUsername(username);
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
     }
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: '1h', // Optional: Set token expiration
-    });
-    res.json({ token });
+    
+    // Create a new user
+    const user = await User.create({ username, userpassword });
+    
+    // Log the created user object for debugging
+    console.log('Created user:', user);
+    res.status(201).json({ user});
+
+  }
+  catch (err) {
+    console.error(err); // Log the error for debugging
+    res.status(400).json({ message: 'Registration failed', error: err.message });
+  }
+})
+
+//to login all users
+router.post('/login', async (req, res) => {
+  const { username, userpassword } = req.body; 
+  
+  try {
+    // 1. Find user
+    const user = await User.findByUsername(username);
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // 2. Compare passwords
+    const isMatch = await User.comparePasswords(userpassword, user.userpassword);
+    console.log(user);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // 3. Generate JWT
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // 4. Send response (omit password in response)
+    const { userpassword: _, ...userWithoutPassword } = user;
+    res.json({ token, user: userWithoutPassword });
+    
   } catch (err) {
-    res.status(500).json({ message: 'Login failed', error: err.message });
+    console.error('Login error:', err);
+    res.status(500).json({ 
+      message: 'Login failed',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+    });
   }
 });
 
