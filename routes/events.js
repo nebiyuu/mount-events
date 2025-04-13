@@ -1,6 +1,8 @@
 const express = require('express');
 const Event = require('../models/Event'); // Import the Event model
 const authOrganizer = require('../middleware/authOrganizer');
+const req = require('express/lib/request');
+const res = require('express/lib/response');
 
 const router = express.Router();
 
@@ -94,16 +96,20 @@ router.put('/update-events/:eventId', authOrganizer, async (req, res) => {
 });
 
 
-
-router.delete('/delete-events/:eventId', async (req, res) => {
+router.delete('/delete-events/:eventId', authOrganizer, async (req, res) => {
   const eventId = req.params.eventId;
 
   try {
-    const deletedEvent = await Event.delete(eventId);
-    
-    if (!deletedEvent) {
-      return res.status(404).json({ message: 'Event not found' });
+    // First get the event to check ownership
+    const event = await Event.getById(eventId);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    // Check if the current organizer owns this event
+    if (event.user_id !== req.user_id) {
+      return res.status(403).json({ message: 'You can only delete your own events' });
     }
+
+    const deletedEvent = await Event.delete(eventId);
     
     res.status(200).json({ 
       message: 'Event deleted successfully',
@@ -116,8 +122,6 @@ router.delete('/delete-events/:eventId', async (req, res) => {
     });
   }
 });
-
-
 router.get('/get-events/:eventId', async (req, res) => {
   const eventId = req.params.eventId;
 
@@ -131,6 +135,15 @@ router.get('/get-events/:eventId', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch event', error: err.message });
   }
 });
+
+router.get('/all-events', async (req,res)=>{
+  try{
+    const events = await Event.getAll();
+    res.status(200).json(events);
+  }catch(err){
+    res.status(500).json({message:'failed to fetch events' ,error:err.message});
+  }
+})
 
 
 module.exports = router;
