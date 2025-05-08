@@ -69,7 +69,6 @@ static async update(eventId, { name, date, eventdetails, location, eventstatus }
     if (rows.length === 0) {
       throw new Error('Event not found');
     }
-    
     return rows[0];
   }
 }

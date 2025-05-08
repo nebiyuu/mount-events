@@ -1,3 +1,4 @@
+const { json } = require('express/lib/response');
 const jwt = require('jsonwebtoken');
 require('dotenv').config(); // This should be at the very top of your entry file
 
@@ -10,14 +11,15 @@ const authOrganizer = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  //console.log(token);
+ // console.log(token);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your actual secret key
 
     // Attach user_id to the request for downstream access
     req.user_id = decoded.userId;
-    console.log("aaaa  "+ req.user_id );
+    req.role = decoded.role
+    console.log("aaaa  "+ req.role );
 
     next();
   } catch (err) {

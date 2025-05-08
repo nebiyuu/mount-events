@@ -3,14 +3,14 @@ const bcrypt = require('bcryptjs');
 
 class User {
 
-  static async create({ username, userpassword }) {
+  static async create({ username, userpassword,role }) {
     const hashedPassword = await bcrypt.hash(userpassword, 10);
     const query = `
-      INSERT INTO users (username, userpassword)
-      VALUES ($1, $2)
+      INSERT INTO users (username, userpassword,role)
+      VALUES ($1, $2,$3)
       RETURNING id;  -- This will return the user_id of the newly created user
     `;
-    const values = [username, hashedPassword];
+    const values = [username, hashedPassword,role];
     
     // Run the query and get the rows (which now includes the user_id)
     const { rows } = await pool.query(query, values);
@@ -38,6 +38,7 @@ class User {
       throw err;
     }
 }
-}
 
+
+}
 module.exports = User;
