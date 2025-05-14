@@ -1,38 +1,29 @@
-run `npm install pg express nodeman jsonwebtoken bcryptjs dotenv`
+## Dependencies
 
-## created table users and events
-##events table
-`CREATE TABLE Events (
-    eventId VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-	eventDetails TEXT,
-    date DATE NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    eventStatus VARCHAR(50) NOT NULL
-);`
-and 
+- **express** – Web framework for building REST APIs  
+- **pg** – PostgreSQL database driver  
+- **dotenv** – Loads environment variables from `.env` file  
+- **jsonwebtoken** – Handles JWT-based authentication  
+- **bcryptjs** – Securely hashes passwords  
+- **cors** – Enables Cross-Origin Resource Sharing  
+- **joi** – Schema validation for request bodies  
+- **node-cron** – Schedules tasks (e.g. ticket expiration checks)  
+- **nodemon** – Auto-restarts the server on file changes (development)  
+- **knex** – SQL query builder, used for migrations and seeders  
 
+### Installation
 
-## users table
-`CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    userpassword VARCHAR(255) NOT NULL
-);`
+To install all dependencies, run:
 
+```bash
+npm install express pg dotenv jsonwebtoken bcryptjs cors joi node-cron nodemon knex
+```
+### Database Setup
+- Migration files are located in ./migrations directory
+- To create all the tables, run:
+```bash
+npx knex migrate:latest
+```
 
-## Organizers table
-`
-CREATE TABLE Organizers (
-    organizer_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    company_phone_number VARCHAR(20) NOT NULL,
-    company_logo VARCHAR(255),
-    company_name VARCHAR(100) NOT NULL,
-    tin_number VARCHAR(30),
-    bank_name VARCHAR(50) NOT NULL,
-    bank_account_number VARCHAR(30) NOT NULL,
-    business_license_path VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);`
+- if you prefer raw SQL, all the queries used to create all the necessary tables are available in [query.sql] file.
+
